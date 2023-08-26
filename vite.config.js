@@ -1,5 +1,10 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
 
-export default defineConfig({
-  base: '/color-dropper/'
-})
+export default defineConfig(({ mode }) => {
+  if (mode === 'production') {
+    return {
+      base: '/color-dropper/',
+    };
+  }
+  return {};
+});

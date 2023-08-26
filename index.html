@@ -2,12 +2,29 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/svg+xml" href="./vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Color Dropper</title>
   </head>
   <body>
-    <div id="app">Color Dropper</div>
+    <div id="app">
+      <header id="header" class="header">
+        <h2 class="title">Color Dropper</h2>
+        <div class="actions">
+          <button class="button round">
+            <img src="./open-image.svg" class="icon" />
+            <input type="file" id="upload-input" accept=".jpg, .jpeg, .png" />
+          </button>
+          <button class="button round">
+            <img src="./color-picker.svg" class="icon" />
+          </button>
+        </div>
+      </header>
+      <canvas id="canvas"></canvas>
+    </div>
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>
