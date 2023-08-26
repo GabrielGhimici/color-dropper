@@ -41,6 +41,7 @@ export class App {
     this.width = width;
     this.height = height;
     this.backgroundLayer?.update(width, height);
+    this.imageLayer?.update(width, height);
   }
 
   public run() {
