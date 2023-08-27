@@ -1,4 +1,3 @@
-import { assertDefined } from '../utils/assert';
 import { Layer } from './layer';
 
 export class ImageLayer extends Layer {
@@ -34,7 +33,7 @@ export class ImageLayer extends Layer {
   }
 
   private computeRenderScale() {
-    assertDefined(this.imageData, 'Unable to load image');
+    if (!this.imageData) return;
     const { width: imageWidth, height: imageHeight } = this.imageData;
     const aspectRatio = imageWidth / imageHeight;
     if (imageWidth <= this.width && imageHeight <= this.height) {
@@ -72,14 +71,13 @@ export class ImageLayer extends Layer {
   }
 
   public render(): void {
-    if (this.imageData) {
-      this.context.drawImage(
-        this.imageData,
-        this.renderPositionX,
-        this.renderPositionY,
-        this.imageData.width * this.widthScale,
-        this.imageData.height * this.heightScale
-      );
-    }
+    if (!this.imageData) return;
+    this.context.drawImage(
+      this.imageData,
+      this.renderPositionX,
+      this.renderPositionY,
+      this.imageData.width * this.widthScale,
+      this.imageData.height * this.heightScale
+    );
   }
 }

@@ -1,6 +1,8 @@
+import { InputManger } from './input-manger';
 import { BackgroundLayer } from './layers/background-layer';
 import { ImageLayer } from './layers/image-layer';
 import { Layer } from './layers/layer';
+import { UiLayer } from './layers/ui-layer';
 import { assertDefined } from './utils/assert';
 
 export class App {
@@ -11,17 +13,25 @@ export class App {
   private imageLayer: ImageLayer | null = null;
   private uiLayer: Layer | null = null;
   private enableUI: boolean = false;
+  private inputManger: InputManger;
+  public selectedColor: string | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.width = canvas.width;
     this.height = canvas.height;
-    this.context = canvas.getContext('2d');
+    this.context = canvas.getContext('2d', { willReadFrequently: true });
+    this.inputManger = InputManger.create();
+  }
+
+  public get pickerEnabled() {
+    return this.enableUI;
   }
 
   public init() {
     assertDefined(this.context, 'The context is not defined');
     this.backgroundLayer = new BackgroundLayer(this.context, this.width, this.height);
     this.imageLayer = new ImageLayer(this.context, this.width, this.height);
+    this.uiLayer = new UiLayer(this.context);
   }
 
   public addImageLayer(file: File) {
@@ -42,6 +52,7 @@ export class App {
     this.height = height;
     this.backgroundLayer?.update(width, height);
     this.imageLayer?.update(width, height);
+    this.uiLayer?.update(this);
   }
 
   public run() {
@@ -50,7 +61,7 @@ export class App {
       this.context.clearRect(0, 0, this.width, this.height);
       this.backgroundLayer?.render();
       this.imageLayer?.render();
-      if (this.enableUI) {
+      if (this.enableUI && this.inputManger.isMouseOver) {
         this.uiLayer?.render();
       }
       requestAnimationFrame(runLoop);
