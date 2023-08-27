@@ -6,5 +6,5 @@ export function rgbToHex(color: Color): string {
     .map((colorComponent) => {
       return colorComponent.toString(16).padStart(2, '0');
     })
-    .join('')}`;
+    .join('')}`.toUpperCase();
 }

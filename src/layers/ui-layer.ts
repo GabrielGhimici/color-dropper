@@ -70,19 +70,31 @@ export class UiLayer extends Layer {
     this.context.fill();
   }
 
+  private intersectsCircle(x: number, y: number, pixelSize: number) {
+    if (!this.circleImage) return;
+    const pixelCenterX = x + pixelSize / 2;
+    const pixelCenterY = y + pixelSize / 2;
+    const {
+      mousePosition: { x: circleCenterX, y: circleCenterY },
+    } = this.inputManager;
+    const { naturalWidth } = this.circleImage;
+    const radius = (naturalWidth - this.strokeSize) / 2;
+    const distance = Math.sqrt(Math.pow(pixelCenterX - circleCenterX, 2) + Math.pow(pixelCenterY - circleCenterY, 2));
+    return distance <= radius;
+  }
+
   private renderPixelsGrid() {
     if (!this.circleImage) return;
     const { naturalWidth } = this.circleImage;
     const pixelSize = (naturalWidth - 2 * this.strokeSize) / this.maxPixelCount;
     this.pixelsGrid.forEach((row, rIndex) => {
       row.forEach((column, cIndex) => {
-        this.context.fillStyle = rgbToHex(column);
-        this.context.fillRect(
-          this.positionX + this.strokeSize + cIndex * pixelSize + this.separatorSize,
-          this.positionY + this.strokeSize + rIndex * pixelSize + this.separatorSize,
-          pixelSize,
-          pixelSize
-        );
+        const pixelX = this.positionX + this.strokeSize + cIndex * pixelSize + this.separatorSize;
+        const pixelY = this.positionY + this.strokeSize + rIndex * pixelSize + this.separatorSize;
+        if (this.intersectsCircle(pixelX, pixelY, pixelSize)) {
+          this.context.fillStyle = rgbToHex(column);
+          this.context.fillRect(pixelX, pixelY, pixelSize, pixelSize);
+        }
       });
     });
     this.context.strokeStyle = '#000';
@@ -95,6 +107,39 @@ export class UiLayer extends Layer {
     );
   }
 
+  private renderSelectedColorCircle() {
+    if (!this.circleImage) return;
+    const { naturalWidth } = this.circleImage;
+    const { mousePosition } = this.inputManager;
+    this.context.beginPath();
+    this.context.strokeStyle = rgbToHex(
+      this.pixelsGrid[Math.trunc(this.maxPixelCount / 2)][Math.trunc(this.maxPixelCount / 2)]
+    );
+    this.context.lineWidth = this.strokeSize * 0.7;
+    this.context.arc(mousePosition.x, mousePosition.y, (naturalWidth - 2 * this.strokeSize * 0.8) / 2, 0, 2 * Math.PI);
+    this.context.stroke();
+  }
+
+  private drawColorLabel() {
+    if (!this.circleImage) return;
+    const { naturalWidth } = this.circleImage;
+    const color = rgbToHex(this.pixelsGrid[Math.trunc(this.maxPixelCount / 2)][Math.trunc(this.maxPixelCount / 2)]);
+    const textWidth = this.context.measureText(color);
+    const labelWidth = textWidth.width + 16;
+    const labelHeight = 20;
+    const labelX = this.positionX + naturalWidth * 0.5 - labelWidth * 0.5;
+    const labelY = this.positionY + naturalWidth * 0.75 - labelHeight * 0.5;
+    this.context.beginPath();
+    this.context.fillStyle = '#DDD';
+    this.context.roundRect(labelX, labelY, labelWidth, labelHeight, 10);
+    this.context.fill();
+    this.context.fillStyle = '#000';
+    this.context.font = 'bold 14px Roboto';
+    this.context.textAlign = 'center';
+    this.context.textBaseline = 'middle';
+    this.context.fillText(color, labelX + labelWidth * 0.5, labelY + labelHeight * 0.5, textWidth.width);
+  }
+
   render(): void {
     if (!this.circleImage || !this.inputManager.isMouseOver) return;
     const { mousePosition } = this.inputManager;
@@ -105,5 +150,7 @@ export class UiLayer extends Layer {
     this.renderBackground();
     this.renderPixelsGrid();
     this.context.drawImage(this.circleImage, this.positionX, this.positionY);
+    this.renderSelectedColorCircle();
+    this.drawColorLabel();
   }
 }

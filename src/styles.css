@@ -99,6 +99,22 @@ body {
   border: 2px solid var(--palette-lighter-background);
 }
 
+.no-cursor {
+  cursor: none;
+}
+
+.active::after {
+  position: absolute;
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 0 50% 50% 50%;
+  transform: rotate(70deg);
+  background: green;
+  bottom: 0;
+  left: 3px;
+}
+
 .color-container {
   display: flex;
   align-items: center;
@@ -109,7 +125,7 @@ body {
   font-size: 1.2rem;
   font-weight: bold;
   color: var(--palette-primary);
-  min-width: 75px;
+  min-width: 85px;
   text-align: center;
 }
 

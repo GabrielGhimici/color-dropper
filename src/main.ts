@@ -14,7 +14,7 @@ window.addEventListener('load', () => {
   addWindowResizeListener(canvas, app);
   addUploadImageListener(app);
   addEnablePickerListener(app);
-  addMouseOverListeners(canvas);
+  addMouseOverListeners(canvas, app);
   addMouseMoveListener(canvas);
   addPointerListeners(canvas, app);
   app.run();
@@ -55,18 +55,26 @@ function addEnablePickerListener(app: App) {
   pickerButton.addEventListener('click', () => {
     if (app.pickerEnabled) {
       app.disablePicker();
+      pickerButton.classList.remove('active');
     } else {
       app.enablePicker();
+      pickerButton.classList.add('active');
     }
   });
 }
 
-function addMouseOverListeners(canvas: HTMLCanvasElement) {
+function addMouseOverListeners(canvas: HTMLCanvasElement, app: App) {
   canvas.addEventListener('mouseenter', () => {
     InputManger.instance.updateMouseOver(true);
+    if (app.pickerEnabled) {
+      canvas.classList.add('no-cursor');
+    }
   });
   canvas.addEventListener('mouseleave', () => {
     InputManger.instance.updateMouseOver(false);
+    if (app.pickerEnabled) {
+      canvas.classList.remove('no-cursor');
+    }
   });
 }
 
