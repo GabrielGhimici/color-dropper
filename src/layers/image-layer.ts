@@ -18,7 +18,7 @@ export class ImageLayer extends Layer {
     this.width = width;
     this.height = height;
     if (this.imageData) {
-      this.computeRenderScale();
+      this.computeRenderImageMeta();
     }
   }
 
@@ -28,44 +28,84 @@ export class ImageLayer extends Layer {
     img.src = imageURL;
     img.addEventListener('load', () => {
       this.imageData = img;
-      this.computeRenderScale();
+      this.computeRenderImageMeta();
     });
   }
 
-  private computeRenderScale() {
+  private positionFormula(a: number, b: number) {
+    return (a - b) / 2;
+  }
+
+  private aspectRatio(width: number, height: number) {
+    return width / height;
+  }
+
+  private computeScale(canvasSize: number, imageSize1: number, imageSize2: number) {
+    const scaleA = canvasSize / imageSize2;
+    const scaledDimension = imageSize2 * scaleA * this.aspectRatio(imageSize1, imageSize2);
+    const scaleB = scaledDimension / imageSize1;
+    return { scaleA, scaleB, scaledDimension };
+  }
+
+  private computeRenderImageMeta() {
     if (!this.imageData) return;
     const { width: imageWidth, height: imageHeight } = this.imageData;
-    const aspectRatio = imageWidth / imageHeight;
+    const aspectRatio = this.aspectRatio(imageWidth, imageHeight);
     if (imageWidth <= this.width && imageHeight <= this.height) {
-      this.renderPositionX = (this.width - imageWidth) / 2;
-      this.renderPositionY = (this.height - imageHeight) / 2;
+      this.renderPositionX = this.positionFormula(this.width, imageWidth);
+      this.renderPositionY = this.positionFormula(this.height, imageHeight);
       this.widthScale = 1;
       this.heightScale = 1;
     } else if (imageWidth <= this.width && imageHeight > this.height) {
-      this.heightScale = this.height / imageHeight;
-      const widthAfterScale = imageHeight * this.heightScale * aspectRatio;
-      this.widthScale = widthAfterScale / imageWidth;
-      this.renderPositionX = (this.width - widthAfterScale) / 2;
+      const { scaleA, scaleB, scaledDimension } = this.computeScale(this.height, imageWidth, imageHeight);
+      this.heightScale = scaleA;
+      this.widthScale = scaleB;
+      this.renderPositionX = this.positionFormula(this.width, scaledDimension);
       this.renderPositionY = 0;
     } else if (imageWidth > this.width && imageHeight <= this.height) {
-      this.widthScale = this.width / imageWidth;
-      const heightAfterScale = (imageWidth * this.widthScale) / aspectRatio;
-      this.heightScale = heightAfterScale / imageHeight;
+      const { scaleA, scaleB, scaledDimension } = this.computeScale(this.width, imageHeight, imageWidth);
+      this.heightScale = scaleB;
+      this.widthScale = scaleA;
       this.renderPositionX = 0;
-      this.renderPositionY = (this.height - heightAfterScale) / 2;
+      this.renderPositionY = this.positionFormula(this.height, scaledDimension);
     } else {
       if (aspectRatio > 1) {
-        this.widthScale = this.width / imageWidth;
-        const heightAfterScale = (imageWidth * this.widthScale) / aspectRatio;
-        this.heightScale = heightAfterScale / imageHeight;
-        this.renderPositionX = 0;
-        this.renderPositionY = (this.height - heightAfterScale) / 2;
+        const { scaleA, scaledDimension } = this.computeScale(this.width, imageHeight, imageWidth);
+        this.widthScale = scaleA;
+        if (scaledDimension > this.height) {
+          const {
+            scaleA,
+            scaleB,
+            scaledDimension: widthAfterScale,
+          } = this.computeScale(this.height, imageWidth, imageHeight);
+          this.heightScale = scaleA;
+          this.widthScale = scaleB;
+          this.renderPositionX = this.positionFormula(this.width, widthAfterScale);
+          this.renderPositionY = 0;
+        } else {
+          this.heightScale = scaledDimension / imageHeight;
+          this.renderPositionX = 0;
+          this.renderPositionY = this.positionFormula(this.height, scaledDimension);
+          console.log(this.heightScale, this.widthScale, this.renderPositionX, this.renderPositionY);
+        }
       } else {
-        this.heightScale = this.height / imageHeight;
-        const widthAfterScale = imageHeight * this.heightScale * aspectRatio;
-        this.widthScale = widthAfterScale / imageWidth;
-        this.renderPositionX = (this.width - widthAfterScale) / 2;
-        this.renderPositionY = 0;
+        const { scaleA, scaledDimension } = this.computeScale(this.height, imageWidth, imageHeight);
+        this.heightScale = scaleA;
+        if (scaledDimension > this.width) {
+          const {
+            scaleA,
+            scaleB,
+            scaledDimension: heightAfterScale,
+          } = this.computeScale(this.width, imageHeight, imageWidth);
+          this.heightScale = scaleB;
+          this.widthScale = scaleA;
+          this.renderPositionX = 0;
+          this.renderPositionY = this.positionFormula(this.height, heightAfterScale);
+        } else {
+          this.widthScale = scaledDimension / imageWidth;
+          this.renderPositionX = this.positionFormula(this.width, scaledDimension);
+          this.renderPositionY = 0;
+        }
       }
     }
   }
