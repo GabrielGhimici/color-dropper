@@ -17,6 +17,7 @@ window.addEventListener('load', () => {
   addMouseOverListeners(canvas, app);
   addMouseMoveListener(canvas);
   addPointerListeners(canvas, app);
+  addDropImageListeners(app);
   app.run();
 });
 
@@ -37,6 +38,10 @@ function addWindowResizeListener(canvas: HTMLCanvasElement, app: App) {
   });
 }
 
+function isImageType(file: File) {
+  return file.type === 'image/jpeg' || file.type === 'image/png';
+}
+
 function addUploadImageListener(app: App) {
   const uploadInput = document.getElementById('upload-input') as HTMLInputElement | null;
   assertDefined(uploadInput, 'No Upload input found');
@@ -44,6 +49,7 @@ function addUploadImageListener(app: App) {
     const target = e.target as HTMLInputElement;
     const files = target.files;
     if (files?.length) {
+      if (!isImageType(files[0])) return;
       app.addImageLayer(files[0]);
     }
   });
@@ -118,4 +124,64 @@ function renderColor(color: string | null) {
       colorPreview.classList.remove('first-render');
     }
   }
+}
+
+function addDropImageListeners(app: App) {
+  const appContainer = document.getElementById('app') as HTMLDivElement | null;
+  assertDefined(appContainer, 'App container cannot be located');
+  appContainer.addEventListener('dragenter', () => {
+    const dropzone = document.getElementById('dropzone') as HTMLDivElement | null;
+    if (!dropzone) {
+      const newDropzone = constructDropZone();
+      appContainer.appendChild(newDropzone);
+      addListenersOnDropzone(appContainer, newDropzone, app);
+    }
+  });
+}
+
+function addListenersOnDropzone(appContainer: HTMLDivElement, dropzone: HTMLDivElement, app: App) {
+  dropzone.addEventListener('dragleave', () => {
+    removeDropZone(appContainer);
+  });
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (!e.dataTransfer) {
+      return;
+    }
+    e.dataTransfer.dropEffect = 'copy';
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (!e.dataTransfer?.files.length) return;
+    const file = e.dataTransfer.files[0];
+    if (!isImageType(file)) {
+      removeDropZone(appContainer);
+      return;
+    }
+    app.addImageLayer(file);
+    removeDropZone(appContainer);
+  });
+}
+
+function removeDropZone(appContainer: HTMLDivElement) {
+  const dropzone = document.getElementById('dropzone') as HTMLDivElement | null;
+  if (dropzone) {
+    appContainer.removeChild(dropzone);
+  }
+}
+
+function constructDropZone() {
+  const dropzone = document.createElement('div');
+  dropzone.setAttribute('id', 'dropzone');
+  dropzone.classList.add('dropzone-container');
+  const dropzoneDelimiter = document.createElement('div');
+  dropzoneDelimiter.classList.add('dropzone-delimiter');
+  dropzone.appendChild(dropzoneDelimiter);
+  const illustration = document.createElement('img');
+  illustration.src = './image-upload.svg';
+  dropzone.appendChild(illustration);
+  const message = document.createElement('h2');
+  message.innerText = 'Drop image here';
+  dropzone.appendChild(message);
+  return dropzone;
 }
