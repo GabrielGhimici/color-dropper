@@ -47,6 +47,32 @@ export class ImageLayer extends Layer {
     return { scaleA, scaleB, scaledDimension };
   }
 
+  private handleAspectRatio(canvasSize1: number, canvasSize2: number, imageSize1: number, imageSize2: number) {
+    const result = {
+      scale1: 1,
+      scale2: 1,
+      pos1: 0,
+      pos2: 0,
+    };
+    const { scaleA, scaledDimension } = this.computeScale(canvasSize1, imageSize2, imageSize1);
+    result.scale1 = scaleA;
+    if (scaledDimension > canvasSize2) {
+      const {
+        scaleA,
+        scaleB,
+        scaledDimension: widthAfterScale,
+      } = this.computeScale(canvasSize2, imageSize1, imageSize2);
+      result.scale2 = scaleA;
+      result.scale1 = scaleB;
+      result.pos1 = this.positionFormula(canvasSize1, widthAfterScale);
+    } else {
+      result.scale2 = scaledDimension / imageSize2;
+      result.pos2 = this.positionFormula(canvasSize2, scaledDimension);
+    }
+
+    return result;
+  }
+
   private computeRenderImageMeta() {
     if (!this.imageData) return;
     const { width: imageWidth, height: imageHeight } = this.imageData;
@@ -70,42 +96,17 @@ export class ImageLayer extends Layer {
       this.renderPositionY = this.positionFormula(this.height, scaledDimension);
     } else {
       if (aspectRatio > 1) {
-        const { scaleA, scaledDimension } = this.computeScale(this.width, imageHeight, imageWidth);
-        this.widthScale = scaleA;
-        if (scaledDimension > this.height) {
-          const {
-            scaleA,
-            scaleB,
-            scaledDimension: widthAfterScale,
-          } = this.computeScale(this.height, imageWidth, imageHeight);
-          this.heightScale = scaleA;
-          this.widthScale = scaleB;
-          this.renderPositionX = this.positionFormula(this.width, widthAfterScale);
-          this.renderPositionY = 0;
-        } else {
-          this.heightScale = scaledDimension / imageHeight;
-          this.renderPositionX = 0;
-          this.renderPositionY = this.positionFormula(this.height, scaledDimension);
-          console.log(this.heightScale, this.widthScale, this.renderPositionX, this.renderPositionY);
-        }
+        const { scale1, scale2, pos1, pos2 } = this.handleAspectRatio(this.width, this.height, imageWidth, imageHeight);
+        this.widthScale = scale1;
+        this.heightScale = scale2;
+        this.renderPositionX = pos1;
+        this.renderPositionY = pos2;
       } else {
-        const { scaleA, scaledDimension } = this.computeScale(this.height, imageWidth, imageHeight);
-        this.heightScale = scaleA;
-        if (scaledDimension > this.width) {
-          const {
-            scaleA,
-            scaleB,
-            scaledDimension: heightAfterScale,
-          } = this.computeScale(this.width, imageHeight, imageWidth);
-          this.heightScale = scaleB;
-          this.widthScale = scaleA;
-          this.renderPositionX = 0;
-          this.renderPositionY = this.positionFormula(this.height, heightAfterScale);
-        } else {
-          this.widthScale = scaledDimension / imageWidth;
-          this.renderPositionX = this.positionFormula(this.width, scaledDimension);
-          this.renderPositionY = 0;
-        }
+        const { scale1, scale2, pos1, pos2 } = this.handleAspectRatio(this.height, this.width, imageHeight, imageWidth);
+        this.widthScale = scale2;
+        this.heightScale = scale1;
+        this.renderPositionX = pos2;
+        this.renderPositionY = pos1;
       }
     }
   }
