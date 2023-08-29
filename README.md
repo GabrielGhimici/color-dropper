@@ -34,4 +34,4 @@ After loading the image you will be able to start the dropper clicking the dropp
 
 ![Dropper active and picking color](./gh-docs/picker-enabled.png)
 
-Clicking in any place into the main working area will pick the color and display it in the application header <img src="./gh-docs/populated-color.png" height="32px"> .
+Clicking in any place into the main working area will pick the color and display it in the application header <img src="./gh-docs/populated-color.png" height="32px"> . The user will be able to copy this color into clipboard by clicking the color text.

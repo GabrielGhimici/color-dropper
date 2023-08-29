@@ -117,12 +117,24 @@ function renderColor(color: string | null) {
     const colorText = existingColorContainer.children.item(0) as HTMLSpanElement | null;
     if (colorText) {
       colorText.innerText = color;
+      addColorTextListener(colorText, color);
     }
     const colorPreview = existingColorContainer.children.item(1) as HTMLDivElement | null;
     if (colorPreview) {
       colorPreview.style.setProperty('background-color', color);
       colorPreview.classList.remove('first-render');
     }
+  }
+}
+
+function addColorTextListener(colorText: HTMLSpanElement, color: string) {
+  if (!colorText.getAttribute('data-listener') || colorText.getAttribute('data-listener') !== 'enabled') {
+    colorText.classList.add('clickable');
+    colorText.addEventListener('pointerdown', (e) => {
+      const text = e.target as HTMLSpanElement | null;
+      text?.setAttribute('data-listener', 'enabled');
+      navigator.clipboard.writeText(color);
+    });
   }
 }
 

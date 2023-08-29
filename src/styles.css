@@ -168,6 +168,11 @@ body {
   text-align: center;
 }
 
+.color-container .color-text.clickable {
+  user-select: none;
+  cursor: pointer;
+}
+
 .color-container .color-preview {
   width: 60px;
   height: 35px;
